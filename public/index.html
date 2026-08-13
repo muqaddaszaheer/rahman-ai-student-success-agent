@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Rahman AI Student Success Agent - personalized learning and progress guidance.">
+  <title>Rahman AI Student Success Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="toast" class="toast hidden" role="alert" aria-live="polite"></div>
+
+  <section id="onboardingScreen" class="onboarding">
+    <div class="hero">
+      <div class="logo">R</div>
+      <p class="eyebrow">AI-POWERED LEARNING</p>
+      <h1>Rahman AI Student Success Agent</h1>
+      <p class="hero-copy">Turn a learning goal into a practical roadmap, study plan, practice, assessment, and next best action.</p>
+
+      <form id="onboardingForm" class="onboarding-card" novalidate>
+        <label for="goalInput">What do you want to learn?</label>
+        <textarea id="goalInput" rows="3" maxlength="300" placeholder="Example: I want to learn Python fundamentals in 30 days"></textarea>
+
+        <div class="two-col">
+          <div>
+            <label for="levelInput">Current level</label>
+            <select id="levelInput">
+              <option value="">Select level</option>
+              <option>Beginner</option>
+              <option>Intermediate</option>
+              <option>Advanced</option>
+            </select>
+          </div>
+          <div>
+            <label for="dailyMinutesInput">Minutes per day</label>
+            <input id="dailyMinutesInput" type="number" min="15" max="480" placeholder="60">
+          </div>
+        </div>
+
+        <label for="durationDaysInput">Target duration (days)</label>
+        <input id="durationDaysInput" type="number" min="3" max="180" placeholder="30">
+
+        <div id="onboardingErrors" class="error-box hidden"></div>
+        <button id="startBtn" class="primary-btn" type="submit">Build My Learning Path</button>
+        <p id="onboardingLoading" class="loading hidden">Analyzing your goal and building your roadmap…</p>
+      </form>
+    </div>
+  </section>
+
+  <div id="dashboard" class="hidden">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo small">R</div>
+        <div>
+          <strong>Rahman AI</strong>
+          <span>Student Success Agent</span>
+        </div>
+      </div>
+      <button id="resetBtn" class="ghost-btn">New Goal</button>
+    </header>
+
+    <main class="container">
+      <section class="welcome">
+        <div>
+          <p class="eyebrow">YOUR LEARNING JOURNEY</p>
+          <h2 id="goalPill">Your goal</h2>
+        </div>
+        <div class="level-badge" id="levelBadge">—</div>
+      </section>
+
+      <section class="grid">
+        <article class="card next-card wide">
+          <div>
+            <p class="eyebrow">NEXT BEST ACTION</p>
+            <h2 id="nextActionTitle">Start your journey</h2>
+            <p id="nextActionReason" class="muted"></p>
+          </div>
+          <button id="nextActionBtn" class="primary-btn">Start</button>
+        </article>
+
+        <article class="card">
+          <div class="card-heading"><h3>Progress</h3><span id="progressPercent">0%</span></div>
+          <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+          <p id="progressText" class="muted">No assessments completed yet.</p>
+        </article>
+
+        <article class="card">
+          <div class="card-heading"><h3>Goal Analysis</h3></div>
+          <div id="analysisContent" class="content"></div>
+        </article>
+
+        <article class="card wide">
+          <div class="card-heading"><h3>Roadmap</h3><span class="muted">Personalized stages</span></div>
+          <div id="roadmapContent" class="roadmap"></div>
+        </article>
+
+        <article class="card wide">
+          <div class="card-heading">
+            <h3>Study Plan</h3>
+            <button id="generatePlanBtn" class="secondary-btn">Generate Plan</button>
+          </div>
+          <div id="studyPlanLoading" class="loading hidden">Building your study plan…</div>
+          <div id="studyPlanContent" class="content muted">Generate a plan from your roadmap.</div>
+        </article>
+
+        <article class="card">
+          <div class="card-heading"><h3>Targeted Practice</h3></div>
+          <div class="controls">
+            <select id="practiceTopicSelect"></select>
+            <button id="getPracticeBtn" class="secondary-btn">Get Practice</button>
+          </div>
+          <div id="practiceLoading" class="loading hidden">Preparing practice…</div>
+          <div id="practiceContent" class="content muted">Choose a topic to begin.</div>
+        </article>
+
+        <article class="card">
+          <div class="card-heading"><h3>Assessment</h3></div>
+          <div id="assessmentSetup" class="controls">
+            <select id="assessmentTopicSelect"></select>
+            <button id="startAssessmentBtn" class="secondary-btn">Start</button>
+          </div>
+          <div id="assessmentLoading" class="loading hidden">Preparing assessment…</div>
+          <form id="assessmentForm" class="assessment hidden"></form>
+          <div id="assessmentResults" class="hidden"></div>
+        </article>
+
+        <article class="card wide">
+          <div class="card-heading"><h3>Performance</h3><span class="muted">Explainable analysis</span></div>
+          <div id="performanceContent" class="content muted">Complete an assessment to see your strengths and weaknesses.</div>
+        </article>
+
+        <article class="card wide">
+          <div class="card-heading"><h3>AI Coach</h3><span class="muted">Context-aware guidance</span></div>
+          <div id="coachMessages" class="coach-messages"></div>
+          <div id="coachLoading" class="loading hidden">Thinking…</div>
+          <form id="coachForm" class="coach-form">
+            <input id="coachInput" maxlength="500" placeholder="Ask what you should study next…" autocomplete="off">
+            <button class="primary-btn" type="submit">Send</button>
+          </form>
+        </article>
+      </section>
+    </main>
+
+    <footer>Rahman AI Student Success Agent · University Capstone Project</footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
