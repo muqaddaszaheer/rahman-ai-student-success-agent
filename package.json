@@ -1,0 +1,19 @@
+{
+  "name": "rahman-ai-student-success-agent",
+  "version": "1.0.0",
+  "description": "Rahman AI Student Success Agent - turns learning goals into measurable progress.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Muqaddas Zaheer Ahmad",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@huggingface/inference": "^3.5.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}
