@@ -1,4 +1,3 @@
-```javascript
 require("dotenv").config();
 
 const express = require("express");
@@ -9,7 +8,6 @@ const hf = require("./lib/hf");
 const { validateOnboarding } = require("./lib/validate");
 
 const app = express();
-
 const PORT = Number(process.env.PORT) || 3000;
 
 app.use(express.json({ limit: "1mb" }));
@@ -30,7 +28,7 @@ app.get("/api/health", (req, res) => {
     status: "ok",
     provider: "Gemini",
     configured: Boolean(process.env.GEMINI_API_KEY),
-    model: process.env.GEMINI_MODEL || "gemini-2.5-flash"
+    model: hf.HF_MODEL
   });
 });
 
@@ -49,7 +47,9 @@ app.post(
       });
     }
 
-    const result = await agent.analyzeGoalAndRoadmap(check.value);
+    const result = await agent.analyzeGoalAndRoadmap(
+      check.value
+    );
 
     return res.json(result);
   })
@@ -115,7 +115,11 @@ app.post(
   asyncRoute(async (req, res) => {
     const body = req.body || {};
 
-    if (!body.topic || typeof body.topic !== "string") {
+    if (
+      !body.topic ||
+      typeof body.topic !== "string" ||
+      !body.topic.trim()
+    ) {
       return res.status(400).json({
         error: "A practice topic is required."
       });
@@ -135,7 +139,9 @@ app.post(
           ? body.currentStageTitle
           : "",
       recentWeakAreas: Array.isArray(body.recentWeakAreas)
-        ? body.recentWeakAreas.slice(0, 8)
+        ? body.recentWeakAreas
+            .slice(0, 8)
+            .map((item) => String(item))
         : []
     });
 
@@ -152,7 +158,11 @@ app.post(
   asyncRoute(async (req, res) => {
     const body = req.body || {};
 
-    if (!body.topic || typeof body.topic !== "string") {
+    if (
+      !body.topic ||
+      typeof body.topic !== "string" ||
+      !body.topic.trim()
+    ) {
       return res.status(400).json({
         error: "An assessment topic is required."
       });
@@ -194,7 +204,8 @@ app.post(
     }
 
     const context =
-      body.context && typeof body.context === "object"
+      body.context &&
+      typeof body.context === "object"
         ? body.context
         : {};
 
@@ -226,18 +237,20 @@ app.use("/api", (req, res) => {
 app.use((err, req, res, next) => {
   console.error("Server error:", err);
 
-  if (err instanceof hf.HFParseError) {
+  if (err instanceof hf.HFConfigError) {
+    return res.status(500).json({
+      error: err.message
+    });
+  }
+
+  if (err instanceof hf.HFRequestError) {
     return res.status(502).json({
       error: err.message
     });
   }
 
-  if (
-    err &&
-    typeof err.message === "string" &&
-    err.message.includes("GEMINI_API_KEY")
-  ) {
-    return res.status(500).json({
+  if (err instanceof hf.HFParseError) {
+    return res.status(502).json({
       error: err.message
     });
   }
@@ -269,4 +282,3 @@ app.listen(PORT, () => {
     );
   }
 });
-```
