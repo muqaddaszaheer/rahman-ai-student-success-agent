@@ -1,3 +1,4 @@
+```javascript
 require("dotenv").config();
 
 const express = require("express");
@@ -8,7 +9,7 @@ const hf = require("./lib/hf");
 const { validateOnboarding } = require("./lib/validate");
 
 const app = express();
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = Number(process.env.PORT) || 8080;
 
 app.use(express.json({ limit: "1mb" }));
 app.use(express.static(path.join(__dirname, "public")));
@@ -20,26 +21,33 @@ function asyncRoute(handler) {
 }
 
 /* =========================
-   Health Check
+   HEALTH CHECK
 ========================= */
 
 app.get("/api/health", (req, res) => {
-  res.json({
+  res.status(200).json({
     status: "ok",
     provider: "Gemini",
-    configured: Boolean(process.env.GEMINI_API_KEY),
-    model: process.env.GEMINI_MODEL || "gemini-2.5-flash"
+    configured: Boolean(
+      process.env.GEMINI_API_KEY &&
+        process.env.GEMINI_API_KEY.trim()
+    ),
+    model:
+      process.env.GEMINI_MODEL ||
+      "gemini-2.5-flash"
   });
 });
 
 /* =========================
-   Analyze Goal
+   ANALYZE GOAL
 ========================= */
 
 app.post(
   "/api/agent/analyze-goal",
   asyncRoute(async (req, res) => {
-    const check = validateOnboarding(req.body || {});
+    const check = validateOnboarding(
+      req.body || {}
+    );
 
     if (!check.valid) {
       return res.status(400).json({
@@ -47,14 +55,17 @@ app.post(
       });
     }
 
-    const result = await agent.analyzeGoalAndRoadmap(check.value);
+    const result =
+      await agent.analyzeGoalAndRoadmap(
+        check.value
+      );
 
-    return res.json(result);
+    return res.status(200).json(result);
   })
 );
 
 /* =========================
-   Study Plan
+   STUDY PLAN
 ========================= */
 
 app.post(
@@ -62,8 +73,11 @@ app.post(
   asyncRoute(async (req, res) => {
     const body = req.body || {};
 
-    const dailyMinutes = Number(body.dailyMinutes);
-    const durationDays = Number(body.durationDays);
+    const dailyMinutes =
+      Number(body.dailyMinutes);
+
+    const durationDays =
+      Number(body.durationDays);
 
     if (
       !body.roadmap ||
@@ -87,25 +101,29 @@ app.post(
       });
     }
 
-    if (!body.level) {
+    if (
+      typeof body.level !== "string" ||
+      !body.level.trim()
+    ) {
       return res.status(400).json({
         error: "Student level is required."
       });
     }
 
-    const result = await agent.generateStudyPlan({
-      roadmap: body.roadmap,
-      dailyMinutes,
-      durationDays,
-      level: String(body.level)
-    });
+    const result =
+      await agent.generateStudyPlan({
+        roadmap: body.roadmap,
+        dailyMinutes,
+        durationDays,
+        level: body.level.trim()
+      });
 
-    return res.json(result);
+    return res.status(200).json(result);
   })
 );
 
 /* =========================
-   Practice
+   PRACTICE
 ========================= */
 
 app.post(
@@ -114,7 +132,6 @@ app.post(
     const body = req.body || {};
 
     if (
-      !body.topic ||
       typeof body.topic !== "string" ||
       !body.topic.trim()
     ) {
@@ -123,33 +140,43 @@ app.post(
       });
     }
 
-    if (!body.level) {
+    if (
+      typeof body.level !== "string" ||
+      !body.level.trim()
+    ) {
       return res.status(400).json({
         error: "Student level is required."
       });
     }
 
-    const result = await agent.generatePractice({
-      topic: body.topic.trim(),
-      level: String(body.level),
-      currentStageTitle:
-        typeof body.currentStageTitle === "string"
-          ? body.currentStageTitle.trim()
-          : "",
-      recentWeakAreas: Array.isArray(body.recentWeakAreas)
-        ? body.recentWeakAreas
-            .slice(0, 8)
-            .map((item) => String(item).trim())
-            .filter(Boolean)
-        : []
-    });
+    const result =
+      await agent.generatePractice({
+        topic: body.topic.trim(),
+        level: body.level.trim(),
+        currentStageTitle:
+          typeof body.currentStageTitle ===
+          "string"
+            ? body.currentStageTitle.trim()
+            : "",
+        recentWeakAreas:
+          Array.isArray(
+            body.recentWeakAreas
+          )
+            ? body.recentWeakAreas
+                .slice(0, 8)
+                .map((item) =>
+                  String(item).trim()
+                )
+                .filter(Boolean)
+            : []
+      });
 
-    return res.json(result);
+    return res.status(200).json(result);
   })
 );
 
 /* =========================
-   Assessment
+   ASSESSMENT
 ========================= */
 
 app.post(
@@ -158,33 +185,37 @@ app.post(
     const body = req.body || {};
 
     if (
-      !body.topic ||
       typeof body.topic !== "string" ||
       !body.topic.trim()
     ) {
       return res.status(400).json({
-        error: "An assessment topic is required."
+        error:
+          "An assessment topic is required."
       });
     }
 
-    if (!body.level) {
+    if (
+      typeof body.level !== "string" ||
+      !body.level.trim()
+    ) {
       return res.status(400).json({
         error: "Student level is required."
       });
     }
 
-    const result = await agent.generateAssessment({
-      topic: body.topic.trim(),
-      level: String(body.level),
-      numQuestions: body.numQuestions
-    });
+    const result =
+      await agent.generateAssessment({
+        topic: body.topic.trim(),
+        level: body.level.trim(),
+        numQuestions: body.numQuestions
+      });
 
-    return res.json(result);
+    return res.status(200).json(result);
   })
 );
 
 /* =========================
-   AI Coach
+   AI COACH
 ========================= */
 
 app.post(
@@ -193,7 +224,6 @@ app.post(
     const body = req.body || {};
 
     if (
-      !body.message ||
       typeof body.message !== "string" ||
       !body.message.trim()
     ) {
@@ -203,23 +233,25 @@ app.post(
     }
 
     const context =
-      body.context && typeof body.context === "object"
+      body.context &&
+      typeof body.context === "object"
         ? body.context
         : {};
 
-    const reply = await agent.coachReply(
-      body.message.trim(),
-      context
-    );
+    const reply =
+      await agent.coachReply(
+        body.message.trim(),
+        context
+      );
 
-    return res.json({
+    return res.status(200).json({
       reply
     });
   })
 );
 
 /* =========================
-   Unknown API Route
+   API 404
 ========================= */
 
 app.use("/api", (req, res) => {
@@ -229,7 +261,7 @@ app.use("/api", (req, res) => {
 });
 
 /* =========================
-   Error Handler
+   ERROR HANDLER
 ========================= */
 
 app.use((err, req, res, next) => {
@@ -254,28 +286,34 @@ app.use((err, req, res, next) => {
   }
 
   return res.status(500).json({
-    error: "Something went wrong on the server. Please try again."
+    error:
+      "Something went wrong on the server. Please try again."
   });
 });
 
 /* =========================
-   Start Server
+   START SERVER
 ========================= */
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(
     `Rahman AI Student Success Agent running on port ${PORT}`
   );
 
   console.log(
     `Gemini AI configured with model: ${
-      process.env.GEMINI_MODEL || "gemini-2.5-flash"
+      process.env.GEMINI_MODEL ||
+      "gemini-2.5-flash"
     }`
   );
 
-  if (!process.env.GEMINI_API_KEY) {
+  if (
+    !process.env.GEMINI_API_KEY ||
+    !process.env.GEMINI_API_KEY.trim()
+  ) {
     console.warn(
       "GEMINI_API_KEY is not set. Add it to Railway Variables."
     );
   }
 });
+```
