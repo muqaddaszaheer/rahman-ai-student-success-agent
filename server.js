@@ -28,7 +28,7 @@ app.get("/api/health", (req, res) => {
     status: "ok",
     provider: "Gemini",
     configured: Boolean(process.env.GEMINI_API_KEY),
-    model: hf.HF_MODEL
+    model: process.env.GEMINI_MODEL || "gemini-2.5-flash"
   });
 });
 
@@ -47,9 +47,7 @@ app.post(
       });
     }
 
-    const result = await agent.analyzeGoalAndRoadmap(
-      check.value
-    );
+    const result = await agent.analyzeGoalAndRoadmap(check.value);
 
     return res.json(result);
   })
@@ -136,12 +134,13 @@ app.post(
       level: String(body.level),
       currentStageTitle:
         typeof body.currentStageTitle === "string"
-          ? body.currentStageTitle
+          ? body.currentStageTitle.trim()
           : "",
       recentWeakAreas: Array.isArray(body.recentWeakAreas)
         ? body.recentWeakAreas
             .slice(0, 8)
-            .map((item) => String(item))
+            .map((item) => String(item).trim())
+            .filter(Boolean)
         : []
     });
 
@@ -204,8 +203,7 @@ app.post(
     }
 
     const context =
-      body.context &&
-      typeof body.context === "object"
+      body.context && typeof body.context === "object"
         ? body.context
         : {};
 
@@ -225,7 +223,7 @@ app.post(
 ========================= */
 
 app.use("/api", (req, res) => {
-  res.status(404).json({
+  return res.status(404).json({
     error: "API route not found."
   });
 });
@@ -256,8 +254,7 @@ app.use((err, req, res, next) => {
   }
 
   return res.status(500).json({
-    error:
-      "Something went wrong on the server. Please try again."
+    error: "Something went wrong on the server. Please try again."
   });
 });
 
